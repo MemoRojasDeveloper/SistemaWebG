@@ -23,11 +23,25 @@ class UsuarioController {
 
     public function guardar() {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            
+            // --- NUEVO: VERIFICACIÓN DE EMAIL DUPLICADO ---
+            $existe = $this->model->getByEmail($_POST['email']);
+            
+            if ($existe) {
+                // Si el correo ya existe:
+                $_SESSION['error'] = "El correo <b>" . $_POST['email'] . "</b> ya está registrado. Por favor usa otro.";
+                
+                // Redirigir de vuelta al formulario de crear
+                header("Location: index.php?action=crear");
+                exit; // Detenemos el código aquí
+            }
+            // ----------------------------------------------
+
+            // Si no existe, el código sigue normal:
             $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
             $this->model->create($_POST['nombre'], $_POST['email'], $password, $_POST['rol']);
             
-            // --- LOG CREAR ---
-            // Nota: Aquí usamos $_SESSION['user_id'] porque es "quién hizo la acción"
+            // Log de auditoría
             $detalles = "Creó al usuario: " . $_POST['email'];
             $this->auditoria->registrar($_SESSION['user_id'], 'CREAR_USUARIO', $detalles);
 
@@ -42,10 +56,28 @@ class UsuarioController {
 
     public function actualizar($id) {
         if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+            
+            // 1. BUSCAMOS SI EL EMAIL YA EXISTE EN LA BASE DE DATOS
+            $usuarioConEseEmail = $this->model->getByEmail($_POST['email']);
+
+            // 2. VERIFICACIÓN INTELIGENTE:
+            // Si el email existe... Y ADEMÁS... el ID de ese email NO es el mío
+            // (significa que estoy intentando usar el correo de otra persona)
+            if ($usuarioConEseEmail && $usuarioConEseEmail['id'] != $id) {
+                
+                // Guardamos el error
+                $_SESSION['error'] = "El correo <b>" . $_POST['email'] . "</b> ya pertenece a otro usuario.";
+                
+                // Te devuelvo a la pantalla de edición (NO guardo nada)
+                header("Location: index.php?action=editar&id=" . $id);
+                exit; 
+            }
+
+            // 3. SI PASA LA PRUEBA, ACTUALIZAMOS NORMAL
             $password = !empty($_POST['password']) ? password_hash($_POST['password'], PASSWORD_DEFAULT) : null;
             $this->model->update($id, $_POST['nombre'], $_POST['email'], $_POST['rol'], $password);
             
-            // --- LOG EDITAR ---
+            // Log de auditoría
             $detalles = "Actualizó datos del usuario ID: " . $id;
             $this->auditoria->registrar($_SESSION['user_id'], 'EDITAR_USUARIO', $detalles);
 
@@ -68,6 +100,18 @@ class UsuarioController {
         $detalles = "Cambió estado del usuario ID: " . $id;
         $this->auditoria->registrar($_SESSION['user_id'], $accion, $detalles);
 
+        header("Location: index.php");
+    }
+
+    public function eliminar($id) {
+        $usuarioAnterior = $this->model->getById($id);
+        if ($usuarioAnterior) {
+            $this->model->delete($id);
+            
+            // Verificamos que $_SESSION esté iniciada (index.php ya lo hace)
+            $detalles = "Eliminó permanentemente al usuario: " . $usuarioAnterior['nombre'];
+            $this->auditoria->registrar($_SESSION['user_id'], 'ELIMINAR_USUARIO', $detalles);
+        }
         header("Location: index.php");
     }
 }

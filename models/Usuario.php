@@ -42,6 +42,15 @@ class Usuario {
         return $stmt->execute($params);
     }
 
+    public function delete($id) {
+        $sql = "DELETE FROM usuarios WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':id', $id);
+        return $stmt->execute();
+    }
+
+    
+    
     public function toggleEstado($id, $nuevoEstado) {
         $sql = "UPDATE usuarios SET estado = ? WHERE id = ?";
         $stmt = $this->pdo->prepare($sql);

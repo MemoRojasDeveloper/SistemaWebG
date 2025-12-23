@@ -58,10 +58,17 @@ switch ($action) {
         }
         break;
 
-    case 'eliminar':
-        // Dar de baja / alta
+    case 'cambiar_estado': 
         if (isset($_GET['id'])) {
             $usuarioController->cambiarEstado($_GET['id']);
+        }
+        break;
+
+    // ESTE ES EL BORRADO DEFINITIVO (Eliminar de BD)
+    case 'eliminar': // COINCIDE con la vista
+        if (isset($_GET['id'])) {
+            // Llamamos a la función eliminar() del controlador
+            $usuarioController->eliminar($_GET['id']);
         }
         break;
 

@@ -6,6 +6,15 @@
     </div>
     <div class="card-body">
         
+    <?php if (isset($_SESSION['error'])): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <?= $_SESSION['error'] ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <?php unset($_SESSION['error']); ?>
+    <?php endif; ?>
+
         <form action="index.php?action=actualizar&id=<?= $usuario['id'] ?>" method="POST">
             
             <div class="mb-3">

@@ -2,6 +2,21 @@
 
 <h2>Crear Usuario</h2>
 
+<div class="card shadow-sm" style="max-width: 600px; margin: auto;">
+    <div class="card-header bg-white">
+        <h4 class="m-0">Nuevo Usuario</h4>
+    </div>
+<div class="card-body">
+
+<?php if (isset($_SESSION['error'])): ?>
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <?= $_SESSION['error'] ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <?php unset($_SESSION['error']); // Borrar el mensaje después de mostrarlo ?>
+<?php endif; ?>
+
 <form action="index.php?action=guardar" method="POST">
     <div class="mb-3">
         <label>Nombre</label>
