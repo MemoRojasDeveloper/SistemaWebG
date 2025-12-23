@@ -1,1 +1,9 @@
-Options -Indexes
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Condición: Si la ruta solicitada NO contiene "public/"
+    RewriteCond %{REQUEST_URI} !public/
+    
+    # Regla: Entonces sí redirige todo a la carpeta public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
