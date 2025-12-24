@@ -3,7 +3,15 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h5 class="m-0 text-primary">Hola, <?= htmlspecialchars($_SESSION['user_nombre']) ?></h5>
-        <small class="text-muted">Rol: <strong><?= ucfirst($_SESSION['user_rol']) ?></strong></small>
+        <small class="text-muted">Rol: 
+            <?php if ($_SESSION['user_id'] == 1): ?>
+                <strong class="text-dark border-bottom border-dark pb-1">
+                    <i class="bi bi-stars"></i> Super Admin
+                </strong>
+            <?php else: ?>
+                <strong><?= ucfirst($_SESSION['user_rol']) ?></strong>
+            <?php endif; ?>
+        </small>
     </div>
     <div>
         <?php if($_SESSION['user_rol'] == 'admin'): ?>
@@ -30,7 +38,8 @@
                     <th>Email</th>
                     <th>Rol</th>
                     <th>Estado</th>
-                    <th style="width: 250px;">Acciones</th> </tr>
+                    <th style="width: 250px;">Acciones</th>
+                </tr>
             </thead>
             <tbody>
                 <?php foreach ($usuarios as $user): ?>
@@ -38,11 +47,19 @@
                     
                     <td><?= htmlspecialchars($user['nombre']) ?></td>
                     <td><?= htmlspecialchars($user['email']) ?></td>
+                    
                     <td>
-                        <span class="badge bg-<?= $user['rol'] == 'admin' ? 'danger' : 'info' ?>">
-                            <?= $user['rol'] ?>
-                        </span>
+                        <?php if ($user['id'] == 1): ?>
+                            <span class="badge bg-dark text-white border border-light">
+                                <i class="bi bi-stars"></i> Super Admin
+                            </span>
+                        <?php else: ?>
+                            <span class="badge bg-<?= $user['rol'] == 'admin' ? 'danger' : 'info' ?>">
+                                <?= ucfirst($user['rol']) ?>
+                            </span>
+                        <?php endif; ?>
                     </td>
+
                     <td>
                         <?= $user['estado'] == 1 ? '<span class="badge bg-success">Activo</span>' : '<span class="badge bg-secondary">Inactivo</span>' ?>
                     </td>
@@ -54,30 +71,60 @@
                                 <i class="bi bi-pencil-square"></i>
                             </a>
 
-                            <?php if($_SESSION['user_rol'] == 'admin'): ?>
-                                
-                                <?php if($user['estado'] == 1): ?>
-                                    <a href="index.php?action=cambiar_estado&id=<?= $user['id'] ?>" 
-                                       class="btn btn-secondary btn-sm"
-                                       title="Desactivar usuario">
-                                        <i class="bi bi-toggle-on"></i>
+                            <?php 
+                            // VARIABLES DE CONTROL
+                            $esAdmin = ($_SESSION['user_rol'] == 'admin');
+                            $esMiCuenta = ($_SESSION['user_id'] == $user['id']);
+                            $esSuperAdmin = ($user['id'] == 1);
+                            ?>
+
+                            <?php if ($esSuperAdmin): ?>
+                                <span class="btn btn-outline-dark btn-sm disabled" title="Usuario Protegido (Super Admin)">
+                                    <i class="bi bi-shield-fill-check"></i>
+                                </span>
+                            <?php else: ?>
+                                <?php if($esAdmin || $esMiCuenta): ?>
+                                    
+                                    <?php if($user['estado'] == 1): ?>
+                                        <?php
+                                            if ($esMiCuenta && !$esAdmin) {
+                                                $msgDesactivar = '⚠️ ADVERTENCIA: Si desactiva su cuenta no podrá acceder a ella. Deberá contactar al administrador para reactivarla. ¿Desea continuar?';
+                                            } else {
+                                                $msgDesactivar = '¿Desactivar usuario?';
+                                            }
+                                        ?>
+                                        <a href="index.php?action=cambiar_estado&id=<?= $user['id'] ?>" 
+                                           class="btn btn-secondary btn-sm"
+                                           title="Desactivar usuario"
+                                           onclick="return confirm('<?= $msgDesactivar ?>')">
+                                            <i class="bi bi-toggle-on"></i>
+                                        </a>
+                                    <?php else: ?>
+                                        <?php if($esAdmin): ?>
+                                        <a href="index.php?action=cambiar_estado&id=<?= $user['id'] ?>" 
+                                           class="btn btn-success btn-sm"
+                                           title="Reactivar usuario">
+                                            <i class="bi bi-toggle-off"></i>
+                                        </a>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
+
+                                    <?php
+                                        if ($esMiCuenta && !$esAdmin) {
+                                            $msgEliminar = '⚠️ PELIGRO FINAL: ¿Está seguro de que desea ELIMINAR SU PROPIA CUENTA? Perderá acceso a todo y esta acción NO se puede deshacer. Se guardará un registro de esta acción.';
+                                        } else {
+                                            $msgEliminar = '⚠️ PELIGRO: ¿Estás seguro de eliminar a ' . htmlspecialchars($user['nombre']) . ' PERMANENTEMENTE?';
+                                        }
+                                    ?>
+                                    <a href="index.php?action=eliminar&id=<?= $user['id'] ?>" 
+                                       class="btn btn-danger btn-sm"
+                                       title="Eliminar permanentemente"
+                                       onclick="return confirm('<?= $msgEliminar ?>')">
+                                        <i class="bi bi-trash-fill"></i>
                                     </a>
-                                <?php else: ?>
-                                    <a href="index.php?action=cambiar_estado&id=<?= $user['id'] ?>" 
-                                       class="btn btn-success btn-sm"
-                                       title="Reactivar usuario">
-                                        <i class="bi bi-toggle-off"></i>
-                                    </a>
+
                                 <?php endif; ?>
-
-                                <a href="index.php?action=eliminar&id=<?= $user['id'] ?>" 
-                                   class="btn btn-danger btn-sm"
-                                   title="Eliminar permanentemente"
-                                   onclick="return confirm('⚠️ PELIGRO: ¿Estás seguro de eliminar a <?= $user['nombre'] ?> PERMANENTEMENTE?')">
-                                    <i class="bi bi-trash-fill"></i>
-                                </a>
-
-                            <?php endif; ?>
+                            <?php endif; ?> 
                         </div>
                     </td>
                 </tr>

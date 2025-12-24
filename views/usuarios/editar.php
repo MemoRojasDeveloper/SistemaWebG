@@ -18,27 +18,43 @@
         <form action="index.php?action=actualizar&id=<?= $usuario['id'] ?>" method="POST">
             
             <div class="mb-3">
-                <label>Nombre</label>
+                <label class="form-label">Nombre</label>
                 <input type="text" name="nombre" class="form-control" value="<?= htmlspecialchars($usuario['nombre']) ?>" required>
             </div>
             
             <div class="mb-3">
-                <label>Email</label>
+                <label class="form-label">Email</label>
                 <input type="email" name="email" class="form-control" value="<?= htmlspecialchars($usuario['email']) ?>" required>
             </div>
             
             <div class="mb-3">
-                <label>Rol</label>
-                <select name="rol" class="form-select">
-                    <option value="usuario" <?= $usuario['rol'] == 'usuario' ? 'selected' : '' ?>>Usuario</option>
-                    <option value="admin" <?= $usuario['rol'] == 'admin' ? 'selected' : '' ?>>Administrador</option>
-                </select>
+                <label class="form-label">Rol</label>
+                
+                <?php if ($usuario['id'] == 1): ?>
+                    <div class="input-group">
+                        <span class="input-group-text bg-dark text-white border-dark">
+                            <i class="bi bi-shield-lock-fill"></i>
+                        </span>
+                        <input type="text" class="form-control bg-light fw-bold" value="Super Administrador" disabled readonly>
+                    </div>
+                    <div class="form-text text-muted">
+                        <i class="bi bi-info-circle"></i> Este rol es permanente y no se puede modificar.
+                    </div>
+                    
+                    <input type="hidden" name="rol" value="admin">
+                    
+                <?php else: ?>
+                    <select name="rol" class="form-select">
+                        <option value="usuario" <?= $usuario['rol'] == 'usuario' ? 'selected' : '' ?>>Usuario</option>
+                        <option value="admin" <?= $usuario['rol'] == 'admin' ? 'selected' : '' ?>>Administrador</option>
+                    </select>
+                <?php endif; ?>
             </div>
 
             <hr>
             
             <div class="mb-3">
-                <label>Nueva Contraseña (dejar en blanco para mantener la actual)</label>
+                <label class="form-label">Nueva Contraseña (dejar en blanco para mantener la actual)</label>
                 <div class="input-group">
                     <input type="password" name="password" id="password" class="form-control">
                     <button class="btn btn-outline-secondary" type="button" id="togglePassword">

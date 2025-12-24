@@ -60,6 +60,19 @@ class UsuarioController {
             // 1. BUSCAMOS SI EL EMAIL YA EXISTE EN LA BASE DE DATOS
             $usuarioConEseEmail = $this->model->getByEmail($_POST['email']);
 
+            // --- PROTECCIÓN DE ROL SUPER ADMIN ---
+            // Si estamos editando al ID 1, forzamos que el rol sea SIEMPRE 'admin'
+            $rol = $_POST['rol'];
+            if ($id == 1) {
+                $rol = 'admin'; 
+            }
+            // -------------------------------------
+
+            $password = !empty($_POST['password']) ? password_hash($_POST['password'], PASSWORD_DEFAULT) : null;
+            
+            // OJO: Usamos la variable $rol, no $_POST['rol']
+            $this->model->update($id, $_POST['nombre'], $_POST['email'], $rol, $password);
+
             // 2. VERIFICACIÓN INTELIGENTE:
             // Si el email existe... Y ADEMÁS... el ID de ese email NO es el mío
             // (significa que estoy intentando usar el correo de otra persona)
@@ -86,7 +99,14 @@ class UsuarioController {
     }
 
     public function cambiarEstado($id) {
-        if ($_SESSION['user_rol'] != 'admin') {
+        // --- PROTECCIÓN SUPER ADMIN ---
+        if ($id == 1) {
+            $_SESSION['error'] = "🚫 No puedes desactivar al Super Administrador. El sistema quedaría vulnerable.";
+            header("Location: index.php");
+            exit;
+        }
+
+        if ($_SESSION['user_rol'] != 'admin'&& $_SESSION['user_id'] != $id) {
             header("Location: index.php");
             exit;
         }
@@ -104,14 +124,40 @@ class UsuarioController {
     }
 
     public function eliminar($id) {
+        // --- PROTECCIÓN SUPER ADMIN ---
+        // Asumiendo que el ID 1 es el Super Admin
+        if ($id == 1) {
+            $_SESSION['error'] = "🚫 ERROR CRÍTICO: El Super Administrador es intocable. No se puede eliminar.";
+            header("Location: index.php");
+            exit;
+        }
+        // 1. SEGURIDAD: Solo permitimos pasar si es Admin O si es el dueño de la cuenta.
+        // Si NO es admin Y el ID a borrar NO es el suyo, lo expulsamos.
+        if ($_SESSION['user_rol'] != 'admin' && $_SESSION['user_id'] != $id) {
+            header("Location: index.php");
+            exit;
+        }
+
         $usuarioAnterior = $this->model->getById($id);
+        
         if ($usuarioAnterior) {
+            // 2. EJECUTAR EL BORRADO
             $this->model->delete($id);
             
-            // Verificamos que $_SESSION esté iniciada (index.php ya lo hace)
+            // 3. REGISTRAR EN AUDITORÍA
             $detalles = "Eliminó permanentemente al usuario: " . $usuarioAnterior['nombre'];
             $this->auditoria->registrar($_SESSION['user_id'], 'ELIMINAR_USUARIO', $detalles);
+
+            // 4. CASO ESPECIAL: Si el usuario se borró a sí mismo
+            if ($_SESSION['user_id'] == $id) {
+                // Destruimos la sesión y lo mandamos al login
+                session_destroy();
+                header("Location: index.php?action=login");
+                exit;
+            }
         }
+        
+        // Si fue un admin borrando a otro, vuelve a la lista
         header("Location: index.php");
     }
 }
