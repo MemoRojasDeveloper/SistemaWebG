@@ -66,32 +66,42 @@
 
                     <td>
                         <div class="btn-group" role="group">
-                            
-                            <a href="index.php?action=editar&id=<?= $user['id'] ?>" class="btn btn-warning btn-sm" title="Editar">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
-
                             <?php 
-                            // VARIABLES DE CONTROL
-                            $esAdmin = ($_SESSION['user_rol'] == 'admin');
-                            $esMiCuenta = ($_SESSION['user_id'] == $user['id']);
-                            $esSuperAdmin = ($user['id'] == 1);
-                            ?>
+                            // 1. DEFINICIÓN DE VARIABLES DE PERMISOS
+                            $esAdmin = ($_SESSION['user_rol'] == 'admin');      // ¿Soy Administrador?
+                            $esMiCuenta = ($_SESSION['user_id'] == $user['id']); // ¿Es mi propia fila?
+                            $esFilaSuperAdmin = ($user['id'] == 1);              // ¿Esta fila es del Super Admin?
 
-                            <?php if ($esSuperAdmin): ?>
+                            // 2. CASO ESPECIAL: FILA DEL SUPER ADMIN (ID 1)
+                            if ($esFilaSuperAdmin): ?>
+                                
+                                <?php if ($esMiCuenta): ?>
+                                    <a href="index.php?action=editar&id=<?= $user['id'] ?>" class="btn btn-warning btn-sm" title="Editar mis datos">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                <?php endif; ?>
+
                                 <span class="btn btn-outline-dark btn-sm disabled" title="Usuario Protegido (Super Admin)">
                                     <i class="bi bi-shield-fill-check"></i>
                                 </span>
+
                             <?php else: ?>
-                                <?php if($esAdmin || $esMiCuenta): ?>
+                                <?php 
+                                // REGLA DE ORO: Solo muestro botones si soy Admin O si es mi propia cuenta.
+                                // Si soy un usuario normal viendo a otro, esto será falso y no veré nada.
+                                if ($esAdmin || $esMiCuenta): 
+                                ?>
                                     
+                                    <a href="index.php?action=editar&id=<?= $user['id'] ?>" class="btn btn-warning btn-sm" title="Editar">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+
                                     <?php if($user['estado'] == 1): ?>
                                         <?php
-                                            if ($esMiCuenta && !$esAdmin) {
-                                                $msgDesactivar = '⚠️ ADVERTENCIA: Si desactiva su cuenta no podrá acceder a ella. Deberá contactar al administrador para reactivarla. ¿Desea continuar?';
-                                            } else {
-                                                $msgDesactivar = '¿Desactivar usuario?';
-                                            }
+                                            // Mensaje de advertencia personalizado
+                                            $msgDesactivar = ($esMiCuenta && !$esAdmin) 
+                                                ? '⚠️ ADVERTENCIA: Si desactiva su cuenta no podrá acceder más. Debera contactar al administrador para poder reactivarla ¿Continuar?' 
+                                                : '¿Desactivar usuario?';
                                         ?>
                                         <a href="index.php?action=cambiar_estado&id=<?= $user['id'] ?>" 
                                            class="btn btn-secondary btn-sm"
@@ -110,11 +120,9 @@
                                     <?php endif; ?>
 
                                     <?php
-                                        if ($esMiCuenta && !$esAdmin) {
-                                            $msgEliminar = '⚠️ PELIGRO FINAL: ¿Está seguro de que desea ELIMINAR SU PROPIA CUENTA? Perderá acceso a todo y esta acción NO se puede deshacer. Se guardará un registro de esta acción.';
-                                        } else {
-                                            $msgEliminar = '⚠️ PELIGRO: ¿Estás seguro de eliminar a ' . htmlspecialchars($user['nombre']) . ' PERMANENTEMENTE?';
-                                        }
+                                        $msgEliminar = ($esMiCuenta && !$esAdmin) 
+                                            ? '⚠️ PELIGRO: ¿Borrar TU PROPIA CUENTA? Esta acción es irreversible.' 
+                                            : '⚠️ ¿Eliminar permanentemente a ' . htmlspecialchars($user['nombre']) . '?';
                                     ?>
                                     <a href="index.php?action=eliminar&id=<?= $user['id'] ?>" 
                                        class="btn btn-danger btn-sm"
@@ -123,8 +131,8 @@
                                         <i class="bi bi-trash-fill"></i>
                                     </a>
 
-                                <?php endif; ?>
-                            <?php endif; ?> 
+                                <?php endif; // Fin del check de permisos (Admin o Mi Cuenta) ?>
+                            <?php endif; // Fin del check Super Admin ?>
                         </div>
                     </td>
                 </tr>

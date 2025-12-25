@@ -23,11 +23,22 @@ class AuthController {
         $usuario = $this->model->getByEmail($email);
 
         if ($usuario && password_verify($password, $usuario['password'])) {
+            // Verificar si el usuario está activo
             if ($usuario['estado'] == 1) {
                 $_SESSION['user_id'] = $usuario['id'];
                 $_SESSION['user_nombre'] = $usuario['nombre'];
                 $_SESSION['user_rol'] = $usuario['rol'];
                 
+                // --- NUEVO: TEMPORIZADOR DE INACTIVIDAD ---
+                
+                // 1. Cargamos la preferencia de tiempo del usuario (o 10 min por defecto)
+                $_SESSION['user_session_time'] = !empty($usuario['session_time']) ? $usuario['session_time'] : 10;
+                
+                // 2. Iniciamos el "reloj" con la hora actual
+                $_SESSION['last_activity'] = time();
+
+                // ------------------------------------------
+
                 // --- REGISTRAR LOGIN ---
                 $this->auditoria->registrar($usuario['id'], 'LOGIN', 'Inicio de sesión exitoso');
 

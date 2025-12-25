@@ -14,6 +14,12 @@
     <div class="login-card">
         <h3 class="text-center mb-4">Iniciar Sesión</h3>
         
+        <?php if(isset($_GET['msg']) && $_GET['msg'] == 'timeout'): ?>
+            <div class="alert alert-warning text-center">
+                <i class="bi bi-clock-history"></i> Tu sesión ha expirado por inactividad. <br>Por favor, ingresa nuevamente.
+            </div>
+        <?php endif; ?>
+
         <?php if(isset($error)): ?>
             <div class="alert alert-danger"><?= $error ?></div>
         <?php endif; ?>
