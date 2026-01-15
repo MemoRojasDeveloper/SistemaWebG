@@ -13,12 +13,19 @@
             <?php endif; ?>
         </small>
     </div>
-    <div>
+    
+    <div class="d-flex align-items-center">
+        
+        <button id="darkModeBtn" class="btn btn-outline-secondary btn-sm me-2" title="Cambiar tema">
+            <i class="bi bi-moon-stars-fill"></i>
+        </button>
+
         <?php if($_SESSION['user_rol'] == 'admin'): ?>
             <a href="index.php?action=auditoria" class="btn btn-outline-dark btn-sm me-2">
                 <i class="bi bi-shield-lock"></i> Auditoría
             </a>
         <?php endif; ?>
+        
         <a href="index.php?action=logout" class="btn btn-danger btn-sm">
             <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
         </a>
@@ -67,12 +74,10 @@
                     <td>
                         <div class="btn-group" role="group">
                             <?php 
-                            // 1. DEFINICIÓN DE VARIABLES DE PERMISOS
-                            $esAdmin = ($_SESSION['user_rol'] == 'admin');      // ¿Soy Administrador?
-                            $esMiCuenta = ($_SESSION['user_id'] == $user['id']); // ¿Es mi propia fila?
-                            $esFilaSuperAdmin = ($user['id'] == 1);              // ¿Esta fila es del Super Admin?
+                            $esAdmin = ($_SESSION['user_rol'] == 'admin');      
+                            $esMiCuenta = ($_SESSION['user_id'] == $user['id']); 
+                            $esFilaSuperAdmin = ($user['id'] == 1);              
 
-                            // 2. CASO ESPECIAL: FILA DEL SUPER ADMIN (ID 1)
                             if ($esFilaSuperAdmin): ?>
                                 
                                 <?php if ($esMiCuenta): ?>
@@ -87,8 +92,6 @@
 
                             <?php else: ?>
                                 <?php 
-                                // REGLA DE ORO: Solo muestro botones si soy Admin O si es mi propia cuenta.
-                                // Si soy un usuario normal viendo a otro, esto será falso y no veré nada.
                                 if ($esAdmin || $esMiCuenta): 
                                 ?>
                                     
@@ -98,7 +101,6 @@
 
                                     <?php if($user['estado'] == 1): ?>
                                         <?php
-                                            // Mensaje de advertencia personalizado
                                             $msgDesactivar = ($esMiCuenta && !$esAdmin) 
                                                 ? '⚠️ ADVERTENCIA: Si desactiva su cuenta no podrá acceder más. Debera contactar al administrador para poder reactivarla ¿Continuar?' 
                                                 : '¿Desactivar usuario?';
@@ -131,8 +133,8 @@
                                         <i class="bi bi-trash-fill"></i>
                                     </a>
 
-                                <?php endif; // Fin del check de permisos (Admin o Mi Cuenta) ?>
-                            <?php endif; // Fin del check Super Admin ?>
+                                <?php endif; ?>
+                            <?php endif; ?>
                         </div>
                     </td>
                 </tr>
