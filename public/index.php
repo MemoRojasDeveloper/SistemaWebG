@@ -29,6 +29,7 @@ if (isset($_SESSION['user_id'])) {
 require_once '../config/db.php';
 require_once '../controllers/UsuarioController.php';
 require_once '../controllers/AuthController.php';
+require_once '../helpers/lang.php';
 
 $action = $_GET['action'] ?? 'index';
 
